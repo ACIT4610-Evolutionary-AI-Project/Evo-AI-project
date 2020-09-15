@@ -1,4 +1,4 @@
-import pycxsimulator
+# import pycxsimulator
 from pylab import *
 
 import networkx as nx
