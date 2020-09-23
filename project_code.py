@@ -8,14 +8,12 @@ import networkx as nx
 
 plt.style.use('seaborn')
 
-data = json.load(open('data.json'))
-
 root = Tk()
 
 root.geometry("780x600")
 root.title('ACIT4160 - Project')
-a = tk.Label(root, text="Modeling the pandemic of COVID-19")
-a.pack()
+a = tk.Label(root, text="Modeling the pandemic of COVID-19", font=20)
+a.pack(padx=10, pady=10)
 frame = Frame(root)
 frame.pack()
 
@@ -48,8 +46,8 @@ def plot():
 # root.config(menu=menubar)
 
 
-button = tk.Button(root, text="Network of Cells", fg="black", command=plot)
-button.pack(side=tk.BOTTOM, padx=5, pady=5)
+button = tk.Button(root, text="Click to see the objects", fg="black", command=plot, font=20)
+button.pack(side=tk.BOTTOM, padx=15, pady=15)
 
 
 root.mainloop()
