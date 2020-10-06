@@ -12,11 +12,11 @@ from tkinter import *
 import tkinter.font as font
 import networkx as nx
 import matplotlib.pyplot as plt
+from tkinter.ttk import Progressbar
 import psutil
 
-
-populationSize = 50
-edges = 0.05
+populationSize = 100
+edges = 0.06
 initialInfectedRatio = 0.5
 infectionProb = 0.6
 recoveryProb = 0.4
@@ -27,32 +27,60 @@ recoveryProb = 0.4
 #susceptible = 'gray'
 #infected = 'r'
 
-susceptible = 'gray'
+susceptible = 'orange'
 infected = 'r'
 recovered = 'g'
 # mitigation policies
 #---------------------------------------------------------------------
 root = Tk()
 root.title('Simulator')
-root.geometry('600x600')
+root.geometry('900x900')
 Font = font.Font(size=20)
 #---------------------------------------------------------------------
 def theTimeInterval():
         start_time = time.time()
-        s = 0
+        infectionTime = 0
         for i in range (1, n + 1):
-            s = s + i 
+            infectionTime = infectionTime + i 
         end_time = time.time()
-        return s, end_time-start_time
-n = 10
+        return infectionTime
+n = 5
 print(theTimeInterval())
+#---------------------------------------------------------------------  
+def clock():
+    hour = time.strftime("%I")
+    minute = time.strftime("%M")
+    second = time.strftime("%S")
+    day = time.strftime("%A")
+    am_pm = time.strftime("%p")
+    my_label.config(text=hour + ":" + minute + ":" + second + "" + " " + am_pm)
+    my_label.after(1000, clock)
+    
+    my_label2.config(text=day)
+    
+def update_clock():
+    my_label.config(text = "New Text")
+    
+my_label = Label(root, text="", font=("Helvectia", 25), fg = "grey")
+my_label.pack(side = TOP, pady=20)
+
+my_label2 = Label(root, text="", font=("Helvectia", 14), fg = "grey")
+my_label.pack(side = TOP, pady=10)
+
+clock()
+#---------------------------------------------------------------------
+# Generate confirmation of initialiation
+# def confirm():
+#     messagebox.showinfo("Information","Initialization of nodes and edges has been completed")
     
 #---------------------------------------------------------------------
 def initialize():
+    messagebox.showinfo("Information","Initialization has been completed")
+          
     global time, network, positions, nextNetwork, infectionTime
     time = 0
     infectionTime = 0
-    #Returns a random graph & it takes (no.of nodes and prob. for edge creation)
+    # Returns a random graph & it takes (no.of nodes and prob. for edge creation)
     network = nx.erdos_renyi_graph(populationSize, edges)
     positions = nx.random_layout(network)
     
@@ -67,25 +95,27 @@ def initialize():
         else:
             network.nodes[i]['state'] = susceptible
     nextNetwork = network.copy()
+       
 
-Btn = Button(text = "initialize",  command = initialize)
+Btn = Button(text = "Click for initialization  ",  command = initialize)
 Btn.pack(padx = 10, pady = 40)
 Btn['font'] = Font
 #---------------------------------------------------------------------
 def observe():
+           
     cla()
 
     nx.draw(network,
             pos = positions,
             node_color = [network.nodes[i]['state'] for i in network.nodes],
-            node_size = 250,
-           )
+            node_size = 150,
+            )
     axis('image')
-    title('time = ' + str(time))
+    title('Infection time = ' + str(time))
     plt.axis('on')
     plt.show()
 #---------------------------------------------------------------------
-Btn = Button(text = "observe",  command = observe)
+Btn = Button(text = " Click to observe the network",  command = observe)
 Btn.pack(padx = 10, pady = 40)
 Btn['font'] = Font
 #---------------------------------------------------------------------
@@ -120,21 +150,59 @@ def update():
                         break
     del network
     network = nextNetwork.copy()
-    
-Btn = Button(text = "update",  command = update)
+ 
+Btn = Button(text = "Click to update nodes in time interval",  command = update)
 Btn.pack(padx = 10, pady = 40)
 Btn['font'] = Font
+#---------------------------------------------------------------------  
+# label = Label(root, text="Infection Time : ")
+# label.pack(side = LEFT, padx=10,  pady=10 )
+# label['font'] = Font
+#---------------------------------------------------------------------
+def optimize():
+    print("optimize")
 
-label = Label(root, text="Infection Time : ")
-label.pack(side = LEFT, padx=10,  pady=20 )
-label['font'] = Font
+Btn = Button(text = "optimization through evolutionary algorithm",  command = optimize)
+Btn.pack(padx = 10, pady = 40)
+Btn['font'] = Font
+#---------------------------------------------------------------------
+# Progress bar widget
+cpu_progress_bar = Progressbar(root, orient = HORIZONTAL, length = 200, mode = 'determinate')
+cpu_progress_bar['maximum'] = 100
+cpu_progress_bar['value'] = 30
+cpu_progress_bar.pack(pady = 10)
+cpu_label = Label(root, text='CPU usage')
+cpu_label.pack()
+
+memory_progress_bar = Progressbar(root, orient = HORIZONTAL, length = 200, mode = 'determinate')
+memory_progress_bar['maximum'] = 100
+memory_progress_bar['value'] = 50
+memory_progress_bar.pack(pady = 10)
+memory_label = Label(root, text='Memory usage')
+memory_label.pack()
+#---------------------------------------------------------------------
+# Cpu and Memory usage to monitor system performance 
+def tick():
+
+    INTERVAL = 500
+
+    cpu_usage = psutil.cpu_percent()
+    cpu_progress_bar['value'] = cpu_usage
+    cpu_label['text'] = 'CPU usage = ' + str(cpu_usage) + ' % '
+
+    memory_usage = psutil.virtual_memory()._asdict()['percent']
+    memory_progress_bar['value'] = memory_usage
+    memory_label['text'] = 'Memory usage = ' + str(memory_usage) + ' % '
+
+    root.after(INTERVAL, tick)
+
+tick()
 
 #---------------------------------------------------------------------
-# StatusBar
+#StatusBar
 status = Label(root, text="COVID-19 Simulator for ACIT 4610",
-                     bd=2, bg="deepskyblue", relief=GROOVE, )
+                      bd=10, bg="grey", relief=GROOVE, font=15)
 status.pack(side=BOTTOM, fill=X, padx=10, pady=20)
-
 #---------------------------------------------------------------------
 #pycxsimulator.GUI().start(func=[initialize, observe, update])
 root.mainloop()
