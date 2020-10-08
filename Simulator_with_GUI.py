@@ -9,14 +9,15 @@ Created on Tue Oct  6 11:48:21 2020
 from pylab import *
 import time
 from tkinter import *
+from tkinter import ttk
 import tkinter.font as font
 import networkx as nx
 import matplotlib.pyplot as plt
 from tkinter.ttk import Progressbar
 import psutil
 
-populationSize = 100
-edges = 0.06
+populationSize = 150
+linkProbability = 0.06
 initialInfectedRatio = 0.5
 infectionProb = 0.6
 recoveryProb = 0.4
@@ -27,26 +28,26 @@ recoveryProb = 0.4
 #susceptible = 'gray'
 #infected = 'r'
 
-susceptible = 'orange'
-infected = 'r'
-recovered = 'g'
+susceptible = "Orange"
+infected = "Red"
+recovered = 'Green'
 # mitigation policies
 #---------------------------------------------------------------------
 root = Tk()
 root.title('Simulator')
 root.geometry('900x900')
-Font = font.Font(size=20)
+Font = font.Font(size=15)
 #---------------------------------------------------------------------
-def theTimeInterval():
-        start_time = time.time()
-        infectionTime = 0
-        for i in range (1, n + 1):
-            infectionTime = infectionTime + i 
-        end_time = time.time()
-        return infectionTime
-n = 5
-print(theTimeInterval())
-#---------------------------------------------------------------------  
+ttk.Label(root, text="Time", font=("Helvectia", 20)).pack()  
+#-----Create Panedwindow
+# panedwindow = ttk.Panedwindow(root, orient=HORIZONTAL)
+# panedwindow.pack(fill = BOTH, expand=True)
+#-----Create Frames
+# fram1=ttk.Frame(panedwindow, width=100, height=300, relief=SUNKEN)
+# fram2=ttk.Frame(panedwindow, width=400, height=400, relief=SUNKEN)
+# panedwindow.add(fram1, weight=1)
+# panedwindow.add(fram2, weight=1)
+#------------------
 def clock():
     hour = time.strftime("%I")
     minute = time.strftime("%M")
@@ -62,17 +63,31 @@ def update_clock():
     my_label.config(text = "New Text")
     
 my_label = Label(root, text="", font=("Helvectia", 25), fg = "grey")
-my_label.pack(side = TOP, pady=20)
+my_label.pack(side = TOP, padx=2, pady=20)
 
 my_label2 = Label(root, text="", font=("Helvectia", 14), fg = "grey")
-my_label.pack(side = TOP, pady=10)
+my_label.pack(side = TOP, padx=2, pady=10)
 
 clock()
-#---------------------------------------------------------------------
-# Generate confirmation of initialiation
-# def confirm():
-#     messagebox.showinfo("Information","Initialization of nodes and edges has been completed")
-    
+#---------------------------------------------------------------------  
+label = Label(root, text="Population : " + str(populationSize), font=("Helvectia", 15), fg = "orange")
+# label.config(text = populationSize)
+label.pack(side = TOP, padx=1,  pady=1 )
+#---------------------------------------------------------------------  
+# label = Label(root, text="Link Probability : " + str(linkProbability), font=("Helvectia", 15), fg="black")
+# label.pack(side = TOP, padx=1,  pady=1 )
+# #---------------------------------------------------------------------  
+# label = Label(root, text="Initial Infected Ratio : " + str(initialInfectedRatio), font=("Helvectia", 15), fg="blue")
+# label.pack(side = TOP, padx=1,  pady=1 )
+#---------------------------------------------------------------------  
+label = Label(root, text="Infection Probability : " + str(infectionProb), font=("Helvectia", 15), fg="grey")
+label.pack(side = TOP, padx=1,  pady=1 )
+#---------------------------------------------------------------------  
+label = Label(root, text="Recovery Probability : " + str(recoveryProb), font=("Helvectia", 15), fg="green")
+label.pack(side = TOP, padx=1,  pady=1 )
+#---------------------------------------------------------------------  
+label = Label(root, text="Infection Time : " + str(recoveryProb), font=("Helvectia", 15), fg="dark blue")
+label.pack(side = TOP, padx=1,  pady=1 )
 #---------------------------------------------------------------------
 def initialize():
     messagebox.showinfo("Information","Initialization has been completed")
@@ -81,7 +96,7 @@ def initialize():
     time = 0
     infectionTime = 0
     # Returns a random graph & it takes (no.of nodes and prob. for edge creation)
-    network = nx.erdos_renyi_graph(populationSize, edges)
+    network = nx.erdos_renyi_graph(populationSize, linkProbability)
     positions = nx.random_layout(network)
     
 #need to check the probabilities -> lessthan or equal 
@@ -98,7 +113,7 @@ def initialize():
        
 
 Btn = Button(text = "Click for initialization  ",  command = initialize)
-Btn.pack(padx = 10, pady = 40)
+Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
 #---------------------------------------------------------------------
 def observe():
@@ -108,15 +123,18 @@ def observe():
     nx.draw(network,
             pos = positions,
             node_color = [network.nodes[i]['state'] for i in network.nodes],
+            cmap = cm.Wistia,
+            vmin=0,
+            vmax=1,
             node_size = 150,
             )
     axis('image')
-    title('Infection time = ' + str(time))
+    title('time = ' + str(time))
     plt.axis('on')
     plt.show()
 #---------------------------------------------------------------------
 Btn = Button(text = " Click to observe the network",  command = observe)
-Btn.pack(padx = 10, pady = 40)
+Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
 #---------------------------------------------------------------------
 def update():
@@ -150,27 +168,25 @@ def update():
                         break
     del network
     network = nextNetwork.copy()
+    
  
 Btn = Button(text = "Click to update nodes in time interval",  command = update)
-Btn.pack(padx = 10, pady = 40)
+Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
-#---------------------------------------------------------------------  
-# label = Label(root, text="Infection Time : ")
-# label.pack(side = LEFT, padx=10,  pady=10 )
-# label['font'] = Font
+
 #---------------------------------------------------------------------
 def optimize():
-    print("optimize")
+    messagebox.showinfo("Information","under construction")
 
-Btn = Button(text = "optimization through evolutionary algorithm",  command = optimize)
-Btn.pack(padx = 10, pady = 40)
+Btn = Button(text = "Optimization through evolutionary algorithm",  command = optimize)
+Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
 #---------------------------------------------------------------------
 # Progress bar widget
 cpu_progress_bar = Progressbar(root, orient = HORIZONTAL, length = 200, mode = 'determinate')
 cpu_progress_bar['maximum'] = 100
 cpu_progress_bar['value'] = 30
-cpu_progress_bar.pack(pady = 10)
+cpu_progress_bar.pack(pady = 40)
 cpu_label = Label(root, text='CPU usage')
 cpu_label.pack()
 
@@ -188,16 +204,15 @@ def tick():
 
     cpu_usage = psutil.cpu_percent()
     cpu_progress_bar['value'] = cpu_usage
-    cpu_label['text'] = 'CPU usage = ' + str(cpu_usage) + ' % '
+    cpu_label['text'] = 'CPU usage when update nodes: ' + str(cpu_usage) + ' % '
 
     memory_usage = psutil.virtual_memory()._asdict()['percent']
     memory_progress_bar['value'] = memory_usage
-    memory_label['text'] = 'Memory usage = ' + str(memory_usage) + ' % '
+    memory_label['text'] = 'Memory usage when update nodes: ' + str(memory_usage) + ' % '
 
     root.after(INTERVAL, tick)
 
 tick()
-
 #---------------------------------------------------------------------
 #StatusBar
 status = Label(root, text="COVID-19 Simulator for ACIT 4610",
