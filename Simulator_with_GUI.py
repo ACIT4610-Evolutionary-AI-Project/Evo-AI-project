@@ -12,12 +12,12 @@ from abc import ABC, abstractmethod
 from pylab import *
 import time
 from tkinter import *
+from tkinter import messagebox
 from tkinter import ttk
 import tkinter.font as font
 import networkx as nx
 import matplotlib.pyplot as plt
-from tkinter.ttk import Progressbar
-import psutil
+
 
 populationSize = 150
 linkProbability = 0.06
