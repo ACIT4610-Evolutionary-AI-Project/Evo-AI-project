@@ -6,6 +6,9 @@ Created on Tue Oct  6 11:48:21 2020
 """
 
 # import pycxsimulator
+import numpy as np
+from scipy.integrate import odeint
+from abc import ABC, abstractmethod
 from pylab import *
 import time
 from tkinter import *
@@ -32,62 +35,70 @@ susceptible = "Orange"
 infected = "Red"
 recovered = 'Green'
 # mitigation policies
+#--------------------------------------------------------------------- Variables for drwaing a plot shows SIR---------.
+# Total population, N.
+N = 1000
+# Initial number of infected and recovered individuals, I0 and R0.
+I0, R0 = 1, 0
+# Everyone else, S0, is susceptible to infection initially.
+S0 = N - I0 - R0
+# Contact rate, beta, and mean recovery rate, gamma, (in 1/days).
+beta, gamma = 0.2, 1./10 
+# A grid of time points (in days)
+t = np.linspace(0, 160, 160)
 #---------------------------------------------------------------------
 root = Tk()
 root.title('Simulator')
 root.geometry('900x900')
 Font = font.Font(size=15)
-#---------------------------------------------------------------------
-ttk.Label(root, text="Time", font=("Helvectia", 20)).pack()  
-#-----Create Panedwindow
-# panedwindow = ttk.Panedwindow(root, orient=HORIZONTAL)
-# panedwindow.pack(fill = BOTH, expand=True)
-#-----Create Frames
-# fram1=ttk.Frame(panedwindow, width=100, height=300, relief=SUNKEN)
-# fram2=ttk.Frame(panedwindow, width=400, height=400, relief=SUNKEN)
-# panedwindow.add(fram1, weight=1)
-# panedwindow.add(fram2, weight=1)
-#------------------
-def clock():
-    hour = time.strftime("%I")
-    minute = time.strftime("%M")
-    second = time.strftime("%S")
-    day = time.strftime("%A")
-    am_pm = time.strftime("%p")
-    my_label.config(text=hour + ":" + minute + ":" + second + "" + " " + am_pm)
-    my_label.after(1000, clock)
-    
-    my_label2.config(text=day)
-    
-def update_clock():
-    my_label.config(text = "New Text")
-    
-my_label = Label(root, text="", font=("Helvectia", 25), fg = "grey")
-my_label.pack(side = TOP, padx=2, pady=20)
+#-------------------------------------------------------------------- SIR model function in differential equations.
+def plot(y, t, N, beta, gamma):
+    S, I, R = y
+    ds_dt = -beta * S * I / N
+    dI_dt = beta * S * I / N - gamma * I
+    dR_dt = gamma * I
+    return ds_dt, dI_dt, dR_dt
 
-my_label2 = Label(root, text="", font=("Helvectia", 14), fg = "grey")
-my_label.pack(side = TOP, padx=2, pady=10)
-
-clock()
+#------------------------------Initial conditions vector.
+    y0 = S0, I0, R0
+    #------------------------------Integrate the SIR equitions over the time grif, t.
+    ret = odeint(plot, y0, t, args=(N, beta, gamma))
+    S, I, R = ret.T     
+    #------------------------------Plot the data on three separate curves for S(t), I(t) and R(t)
+    figure = plt.figure(facecolor='w')
+    ax = figure.add_subplot(111, facecolor = '#dddddd', axisbelow=True)
+    ax.plot(t, S/1000, 'b', alpha=0.5, lw=2, label = "Susceptible")
+    ax.plot(t, I/100, 'r', alpha=0.5, lw=2, label='Infected')
+    ax.plot(t, R/1000, 'g', alpha=0.5, lw=2, label="Recovered")
+    ax.set_xlabel('Time/days')
+    ax.set_ylabel('Number (1000s)')
+    ax.set_ylim(0, 1.4)
+    ax.yaxis.set_tick_params(length=0)
+    ax.xaxis.set_tick_params(length=0)
+    ax.grid(b=True, which='major', c='w', lw=2, ls='-')
+    legend = ax.legend()
+    legend.get_frame().set_alpha(0.3)
+    
+    for i in ('top', 'right', 'bottom', 'left'):
+        ax.spines[i].set_visible(False)
+    plt.show()
+             
+Btn = Button(text = "Click to show SIR in a Plot",  command = plot)
+Btn.pack(padx = 10, pady = 20)
+Btn['font'] = Font
 #---------------------------------------------------------------------  
 label = Label(root, text="Population : " + str(populationSize), font=("Helvectia", 15), fg = "orange")
 # label.config(text = populationSize)
-label.pack(side = TOP, padx=1,  pady=1 )
-#---------------------------------------------------------------------  
-# label = Label(root, text="Link Probability : " + str(linkProbability), font=("Helvectia", 15), fg="black")
-# label.pack(side = TOP, padx=1,  pady=1 )
-# #---------------------------------------------------------------------  
-# label = Label(root, text="Initial Infected Ratio : " + str(initialInfectedRatio), font=("Helvectia", 15), fg="blue")
-# label.pack(side = TOP, padx=1,  pady=1 )
+label.pack(side = TOP, padx=1,  pady=20 )
 #---------------------------------------------------------------------  
 label = Label(root, text="Infection Probability : " + str(infectionProb), font=("Helvectia", 15), fg="grey")
-label.pack(side = TOP, padx=1,  pady=1 )
+label.pack(side = TOP, padx=1,  pady=20 )
 #---------------------------------------------------------------------  
 label = Label(root, text="Recovery Probability : " + str(recoveryProb), font=("Helvectia", 15), fg="green")
-label.pack(side = TOP, padx=1,  pady=1 )
+label.pack(side = TOP, padx=1,  pady=20 )
 #---------------------------------------------------------------------  
 label = Label(root, text="Infection Time : " + str(recoveryProb), font=("Helvectia", 15), fg="dark blue")
-label.pack(side = TOP, padx=1,  pady=1 )
+label.pack(side = TOP, padx=1,  pady=20 )
 #---------------------------------------------------------------------
 def initialize():
     messagebox.showinfo("Information","Initialization has been completed")
@@ -156,7 +167,7 @@ def update():
                         break
         elif network.nodes[i]['state'] == infected:
              nextNetwork.nodes[i]['inf_t'] = nextNetwork.nodes[i]['inf_t'] + 1
-           
+            # The random() generates the initial population randomely. 
              if random() < recoveryProb and nextNetwork.nodes[i]['inf_t']>=3:
                 #print(nextNetwork.nodes[i]['inf_t'])
                 nextNetwork.nodes[i]['state'] = recovered
@@ -168,52 +179,59 @@ def update():
                         break
     del network
     network = nextNetwork.copy()
-    
+ 
  
 Btn = Button(text = "Click to update nodes in time interval",  command = update)
 Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
 
-#---------------------------------------------------------------------
-def optimize():
+#---------------------------------------------------------------------class individual-------------.
+# class indiv(ABC):
+    
+#     def __init__(self, value=None, initial_params=None):
+        
+#         if value is not None:
+#             self.value = value
+#         else:
+#             self.value = self._random_init(initial_params)
+            
+#     @abstractmethod # anotations uses to define abstract class.
+#     def pair(self, other, pair_params):
+#         pass
+    
+#     @abstractmethid
+#     def mutate(self, mutate_params):
+#         pass
+    
+#     @abstractmethod
+#     def _random_init(self, initial_params):
+#         pass
+    
+# class Optimazation(indiv):
+#     def pair(self, other, pair_params):
+#         return Optimization(pair_params['alpha'] * self.value + (1 - pair_params['alpha']) * other.value)
+    
+#     # def mutate(self, mutate_params):
+        
+
+# class Population():
+    
+#     def __init__(self, size, fitness, individual_class, initial_params):
+#         self.fitness = fitness
+#         self.individuals = [individual_class(initial_params = initial_params)]
+        
+
+            
+#-------------------------------------------------------------------
+
+def optimization():
     messagebox.showinfo("Information","under construction")
 
-Btn = Button(text = "Optimization through evolutionary algorithm",  command = optimize)
+Btn = Button(text = "Optimization through evolutionary algorithm",  command = optimization)
 Btn.pack(padx = 10, pady = 20)
 Btn['font'] = Font
-#---------------------------------------------------------------------
-# Progress bar widget
-cpu_progress_bar = Progressbar(root, orient = HORIZONTAL, length = 200, mode = 'determinate')
-cpu_progress_bar['maximum'] = 100
-cpu_progress_bar['value'] = 30
-cpu_progress_bar.pack(pady = 40)
-cpu_label = Label(root, text='CPU usage')
-cpu_label.pack()
 
-memory_progress_bar = Progressbar(root, orient = HORIZONTAL, length = 200, mode = 'determinate')
-memory_progress_bar['maximum'] = 100
-memory_progress_bar['value'] = 50
-memory_progress_bar.pack(pady = 10)
-memory_label = Label(root, text='Memory usage')
-memory_label.pack()
-#---------------------------------------------------------------------
-# Cpu and Memory usage to monitor system performance 
-def tick():
-
-    INTERVAL = 500
-
-    cpu_usage = psutil.cpu_percent()
-    cpu_progress_bar['value'] = cpu_usage
-    cpu_label['text'] = 'CPU usage when update nodes: ' + str(cpu_usage) + ' % '
-
-    memory_usage = psutil.virtual_memory()._asdict()['percent']
-    memory_progress_bar['value'] = memory_usage
-    memory_label['text'] = 'Memory usage when update nodes: ' + str(memory_usage) + ' % '
-
-    root.after(INTERVAL, tick)
-
-tick()
-#---------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------.
 #StatusBar
 status = Label(root, text="COVID-19 Simulator for ACIT 4610",
                       bd=10, bg="grey", relief=GROOVE, font=15)
